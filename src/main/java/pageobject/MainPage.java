@@ -13,7 +13,7 @@ import org.openqa.selenium.WebElement;
 
 public class MainPage {
     public final WebDriver driver;
-    private final static String startPage = "https://stellarburgers.nomoreparties.site/";
+    private final static String START_PAGE = "https://stellarburgers.nomoreparties.site/";
     private final By loginAccountButton = By.xpath(".//*[text() = 'Войти в аккаунт']"); //кнопка "Войти в аккаунт"
     private final By personalAreaButton = By.xpath(".//*[text() = 'Личный Кабинет']"); //кнопка "Личный Кабинет"
     private final By bunsButton = By.xpath(".//span[text()='Булки']/.."); //вкладка "Булки"
@@ -30,7 +30,7 @@ public class MainPage {
 
     @Step("Открытие главной страницы")
     public void openMainPage() {
-        driver.get(startPage);
+        driver.get(START_PAGE);
     }
 
     @Step("Войти в аккаунт на главной странице")

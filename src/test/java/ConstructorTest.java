@@ -11,7 +11,6 @@ import static org.junit.Assert.assertTrue;
 public class ConstructorTest {
     private MainPage objMainPage;
     private WebDriver driver;
-    String accessToken;
 
     @Before
     @DisplayName("Открытие браузера и сайта")
@@ -44,9 +43,6 @@ public class ConstructorTest {
     @After
     @DisplayName("Закрытие браузера")
     public void teardown() {
-        if (accessToken != null) {
-            UserData.deleteUser(accessToken);
-        }
         driver.quit();
     }
 }

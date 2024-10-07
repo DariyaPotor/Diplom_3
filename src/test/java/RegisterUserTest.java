@@ -1,3 +1,8 @@
+import apisteps.UserApi;
+import io.qameta.allure.restassured.AllureRestAssured;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import pojo.UserData;
 import driver.WebDriverFactory;
 import io.qameta.allure.junit4.DisplayName;
 import org.junit.After;
@@ -13,21 +18,19 @@ import java.time.Duration;
 import static org.junit.Assert.assertEquals;
 
 public class RegisterUserTest {
+
     private RegisterPage objRegisterPage;
     private WebDriver driver;
-    private String userName;
-    private String userEmail;
-    private String userPassword;
-    String accessToken;
+    public String userAccessToken;
+    public String userEmail = "dddffdfdlkjhgs@yandex.ru";
+    public String userName = "Magfdfsdsfjhgfmed";
+    public String userPassword = "abohfdgdsfdderall";
+    private UserApi userApi;
 
     @Before
     @DisplayName("Открытие браузера, сайта и создание данных тестового пользователя")
     public void before() {
         driver = WebDriverFactory.createWebDriver();
-        UserData userData = new UserData();
-        userName = userData.getRandomName();
-        userEmail = userData.getRandomEmail();
-        userPassword = userData.getRandomPassword();
         objRegisterPage = new RegisterPage(driver);
     }
 
@@ -54,10 +57,15 @@ public class RegisterUserTest {
     }
 
     @After
-    @DisplayName("Закрытие браузера")
-    public void teardown() {
-        if (accessToken != null) {
-            UserData.deleteUser(accessToken);
+    public void tearDown() {
+        RestAssured.baseURI = UserApi.baseUrl;
+        RestAssured.filters(new AllureRestAssured());
+        userApi = new UserApi();
+        UserData userDataLogin = new UserData(userEmail, userPassword, null);
+        Response response = userApi.loginUser(userDataLogin);
+        userAccessToken = response.then().extract().path("accessToken");
+        if (userAccessToken != null && !userAccessToken.isEmpty()) {
+            userApi.deleteUser(userAccessToken);
         }
         driver.quit();
     }

@@ -1,43 +1,53 @@
+import apisteps.UserApi;
+import io.restassured.response.Response;
+import pojo.UserData;
 import driver.WebDriverFactory;
 import io.qameta.allure.junit4.DisplayName;
+import io.qameta.allure.restassured.AllureRestAssured;
+import io.restassured.RestAssured;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import pageobject.LoginPage;
 import pageobject.ProfilePage;
-import pageobject.RegisterPage;
 import pageobject.MainPage;
 
 import static org.junit.Assert.assertEquals;
 
 public class UserTest {
-    private LoginPage objLoginPage;
-    private MainPage objMainPage;
+
     private WebDriver driver;
-    private String email;
-    private String password;
-    String accessToken;
+    public LoginPage objLoginPage;
+    public String userEmail = "dddddeddaas@yandex.ru";
+    public String userName = "Magomed";
+    public String userPassword = "abobafederal";
+    public UserApi userApi;
+    public String userAccessToken;
 
     @Before
     @DisplayName("Открытие браузера, сайта и создание данных тестового пользователя")
     public void before() {
-        driver = WebDriverFactory.createWebDriver();
-        UserData userData = new UserData();
-        String name = userData.getRandomName();
-        email = userData.getRandomEmail();
-        password = userData.getRandomPassword();
-        RegisterPage objRegisterPage = new RegisterPage(driver);
-        objRegisterPage.openRegisterPage();
-        objRegisterPage.createUser(name,email,password);
+        RestAssured.baseURI = UserApi.baseUrl;
+        RestAssured.filters(new AllureRestAssured());
+        userApi = new UserApi();
+        UserData userData = new UserData(userEmail, userPassword, userName);
+        userApi.createUser(userData);
+        UserData userDataLogin = new UserData(userEmail, userPassword, null);
+        Response response = userApi.loginUser(userDataLogin);
+        userAccessToken = response.then().extract().path("accessToken");
         objLoginPage = new LoginPage(driver);
-        objMainPage = new MainPage(driver);
+        driver = WebDriverFactory.createWebDriver();
     }
 
     @Test
     @DisplayName("Проверка на логин пользователя")
     public void personalAccountTest() {
-        objLoginPage.login(email, password);
+        MainPage objMainPage = new MainPage(driver);
+        objMainPage.openMainPage();
+        objMainPage.checkPersonalArea();
+        objLoginPage = new LoginPage(driver);
+        objLoginPage.login(userEmail, userPassword);
         objMainPage.checkPersonalArea();
         ProfilePage objProfilePage = new ProfilePage(driver);
         assertEquals("Entering was  Failed", "Выход", objProfilePage.checkLogInPersonalAccount());
@@ -46,7 +56,11 @@ public class UserTest {
     @Test
     @DisplayName("Проверка на выход из аккаунта")
     public void checkExitTest() {
-        objLoginPage.login(email, password);
+        MainPage objMainPage = new MainPage(driver);
+        objMainPage.openMainPage();
+        objMainPage.checkPersonalArea();
+        objLoginPage = new LoginPage(driver);
+        objLoginPage.login(userEmail, userPassword);
         objMainPage.checkPersonalArea();
         ProfilePage objProfilePage = new ProfilePage(driver);
         objProfilePage.clickExitButton();
@@ -56,7 +70,11 @@ public class UserTest {
     @Test
     @DisplayName("Переход в личный кабинет")
     public void checkLogoTest() {
-        objLoginPage.login(email, password);
+        MainPage objMainPage = new MainPage(driver);
+        objMainPage.openMainPage();
+        objMainPage.checkPersonalArea();
+        objLoginPage = new LoginPage(driver);
+        objLoginPage.login(userEmail, userPassword);
         objMainPage.checkPersonalArea();
         ProfilePage objProfilePage = new ProfilePage(driver);
         objProfilePage.clickLogoButton();
@@ -66,17 +84,21 @@ public class UserTest {
     @Test
     @DisplayName("Переход из личного кабинета в конструктор")
     public void checkConstructorTest() {
-        objLoginPage.login(email, password);
+        MainPage objMainPage = new MainPage(driver);
+        objMainPage.openMainPage();
+        objMainPage.checkPersonalArea();
+        objLoginPage = new LoginPage(driver);
+        objLoginPage.login(userEmail, userPassword);
         objMainPage.checkPersonalArea();
         ProfilePage objProfilePage = new ProfilePage(driver);
         objProfilePage.clickConstructorButton();
         assertEquals("ConstructorButtonFailed", "Оформить заказ", objMainPage.checkOrderButton());
     }
+
     @After
-    @DisplayName("Закрытие браузера")
-    public void teardown() {
-        if (accessToken != null) {
-            UserData.deleteUser(accessToken);
+    public void tearDown() {
+        if (userAccessToken != null && !userAccessToken.isEmpty()) {
+            userApi.deleteUser(userAccessToken);
         }
         driver.quit();
     }

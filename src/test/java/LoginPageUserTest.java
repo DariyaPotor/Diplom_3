@@ -1,34 +1,52 @@
 import driver.WebDriverFactory;
 import io.qameta.allure.junit4.DisplayName;
+import org.openqa.selenium.WebDriver;
+import pageobject.LoginPage;
+import pageobject.MainPage;
+import pageobject.RecoveryPasswordPage;
+import pageobject.RegisterPage;
+import pojo.UserData;
+import apisteps.UserApi;
+import io.qameta.allure.restassured.AllureRestAssured;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
-import pageobject.RecoveryPasswordPage;
-import pageobject.LoginPage;
-import pageobject.RegisterPage;
-import pageobject.MainPage;
+
 import static org.junit.Assert.assertEquals;
 
 public class LoginPageUserTest {
+
+    private UserApi userApi;
+    public String userEmail = "dddddeddaas@yandex.ru";
+    public String userName = "Magomed";
+    public String userPassword = "abobafederal";
+    public String userAccessToken;
     private RegisterPage objRegisterPage;
     private LoginPage objLoginPage;
     private WebDriver driver;
-    private String userEmail;
-    private String userPassword;
-    String accessToken;
 
     @Before
-    @DisplayName("Открытие браузера, сайта и создание данных тестового пользователя")
-    public void before() {
+    public void setUp() {
+        RestAssured.baseURI = UserApi.baseUrl;
+        RestAssured.filters(new AllureRestAssured());
+        userApi = new UserApi();
+        UserData userData = new UserData(userEmail, userPassword, userName);
+        userApi.createUser(userData);
+        UserData userDataLogin = new UserData(userEmail, userPassword, null);
+        Response response = userApi.loginUser(userDataLogin);
+        userAccessToken = response.then().extract().path("accessToken");
         driver = WebDriverFactory.createWebDriver();
-        UserData userData = new UserData();
-        String userName = userData.getRandomName();
-        userEmail = userData.getRandomEmail();
-        userPassword = userData.getRandomPassword();
         objRegisterPage = new RegisterPage(driver);
-        objRegisterPage.openRegisterPage();
-        objRegisterPage.createUser(userName, userEmail, userPassword);
+    }
+
+    @After
+    public void tearDown() {
+        if (userAccessToken != null && !userAccessToken.isEmpty()) {
+            userApi.deleteUser(userAccessToken);
+        }
+        driver.quit();
     }
 
     @Test
@@ -41,6 +59,7 @@ public class LoginPageUserTest {
         objLoginPage.login(userEmail, userPassword);
         assertEquals("Ошибка", "Войти", objMainPage.checkOrderButton());
     }
+
     @Test
     @DisplayName("Вход через кнопку «Личный кабинет»")
     public void personalAccountTest() {
@@ -73,13 +92,5 @@ public class LoginPageUserTest {
         objLoginPage.login(userEmail, userPassword);
         MainPage objMainPage = new MainPage(driver);
         assertEquals("Ошибка", "Войти", objMainPage.checkOrderButton());
-    }
-    @After
-    @DisplayName("Закрытие браузера")
-    public void teardown() {
-        if (accessToken != null) {
-            UserData.deleteUser(accessToken);
-        }
-        driver.quit();
     }
 }
