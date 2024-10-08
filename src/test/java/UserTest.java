@@ -28,7 +28,7 @@ public class UserTest {
     @Before
     @DisplayName("Открытие браузера, сайта и создание данных тестового пользователя")
     public void before() {
-        RestAssured.baseURI = UserApi.baseUrl;
+        RestAssured.baseURI = UserApi.BASE_URI;
         RestAssured.filters(new AllureRestAssured());
         userApi = new UserApi();
         UserData userData = new UserData(userEmail, userPassword, userName);

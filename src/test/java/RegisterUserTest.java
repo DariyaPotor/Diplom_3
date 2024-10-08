@@ -58,7 +58,7 @@ public class RegisterUserTest {
 
     @After
     public void tearDown() {
-        RestAssured.baseURI = UserApi.baseUrl;
+        RestAssured.baseURI = UserApi.BASE_URI;
         RestAssured.filters(new AllureRestAssured());
         userApi = new UserApi();
         UserData userDataLogin = new UserData(userEmail, userPassword, null);

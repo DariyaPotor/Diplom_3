@@ -29,7 +29,7 @@ public class LoginPageUserTest {
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = UserApi.baseUrl;
+        RestAssured.baseURI = UserApi.BASE_URI;
         RestAssured.filters(new AllureRestAssured());
         userApi = new UserApi();
         UserData userData = new UserData(userEmail, userPassword, userName);
